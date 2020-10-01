@@ -19,10 +19,6 @@ Execute (Initialize test environment):
   \  'function! ResetPlugConfig()', 'unlet s:config_dirs', 'endfunction',
   \  'function! CompareURI(a, b)', 'return s:compare_git_uri(a:a, a:b)', 'endfunction']
 
-  if $ENV != 'vim8'
-    call add(patch, 'let s:vim8 = 0')
-  endif
-
   call writefile(extend(readfile($PLUG_TMP), patch), $PLUG_TMP)
 
   set t_Co=256
@@ -91,6 +87,7 @@ Execute (Print Interpreter Version):
 
 Include: workflow.vader
 Include: regressions.vader
+Include: functional.vader
 
 Execute (Cleanup):
   silent! call RmRf(g:temp_plugged)

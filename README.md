@@ -7,8 +7,8 @@ A minimalist Vim plugin manager.
 
 ### Pros.
 
-- Easier to setup: Single file. No boilerplate code required.
-- Easier to use: Concise, intuitive syntax
+- Easy to set up: Single file. No boilerplate code required.
+- Easy to use: Concise, intuitive syntax
 - [Super-fast][40/4] parallel installation/update
   (with any of `+job`, `+python`, `+python3`, `+ruby`, or [Neovim][nv])
 - Creates shallow clones to minimize disk space usage and download time
@@ -44,36 +44,31 @@ file as suggested [here][auto].
 ###### Windows (PowerShell)
 
 ```powershell
-md ~\vimfiles\autoload
-$uri = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-(New-Object Net.WebClient).DownloadFile(
-  $uri,
-  $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
-    "~\vimfiles\autoload\plug.vim"
-  )
-)
+iwr -useb https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim |`
+    ni $HOME/vimfiles/autoload/plug.vim -Force
 ```
 
 #### Neovim
 
-###### Unix
+###### Unix, Linux
 
 ```sh
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+```
+
+###### Linux (Flatpak)
+
+```sh
+curl -fLo ~/.var/app/io.neovim.nvim/data/nvim/site/autoload/plug.vim \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 ```
 
 ###### Windows (PowerShell)
 
 ```powershell
-md ~\AppData\Local\nvim\autoload
-$uri = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-(New-Object Net.WebClient).DownloadFile(
-  $uri,
-  $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
-    "~\AppData\Local\nvim\autoload\plug.vim"
-  )
-)
+iwr -useb https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim |`
+    ni "$env:LOCALAPPDATA/nvim-data/site/autoload/plug.vim" -Force
 ```
 
 ### Getting Help
@@ -90,7 +85,7 @@ $uri = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 
 ### Usage
 
-Add a vim-plug section to your `~/.vimrc` (or `~/.config/nvim/init.vim` for Neovim):
+Add a vim-plug section to your `~/.vimrc` (or `stdpath('config') . '/init.vim'` for Neovim)
 
 1. Begin the section with `call plug#begin()`
 1. List the plugins with `Plug` commands
@@ -102,7 +97,7 @@ Add a vim-plug section to your `~/.vimrc` (or `~/.config/nvim/init.vim` for Neov
 
 ```vim
 " Specify a directory for plugins
-" - For Neovim: ~/.local/share/nvim/plugged
+" - For Neovim: stdpath('data') . '/plugged'
 " - Avoid using standard Vim directory names like 'plugin'
 call plug#begin('~/.vim/plugged')
 
@@ -121,7 +116,7 @@ Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
 
-" Using a non-master branch
+" Using a non-default branch
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
 " Using a tagged release; wildcard allowed (requires git 1.9.2 or above)
@@ -148,7 +143,7 @@ Reload .vimrc and `:PlugInstall` to install plugins.
 | ----------------------------------- | ------------------------------------------------------------------ |
 | `PlugInstall [name ...] [#threads]` | Install plugins                                                    |
 | `PlugUpdate [name ...] [#threads]`  | Install or update plugins                                          |
-| `PlugClean[!]`                      | Remove unused directories (bang version will clean without prompt) |
+| `PlugClean[!]`                      | Remove unlisted plugins (bang version will clean without prompt) |
 | `PlugUpgrade`                       | Upgrade vim-plug itself                                            |
 | `PlugStatus`                        | Check the status of plugins                                        |
 | `PlugDiff`                          | Examine changes from the previous update and the pending changes   |
@@ -225,8 +220,8 @@ Plug 'junegunn/goyo.vim', { 'for': 'markdown' }
 autocmd! User goyo.vim echom 'Goyo is now loaded!'
 ```
 
-`for` option is generally not needed as most plugins for specific file types
-usually don't have too much code in `plugin` directory. You might want to
+The `for` option is generally not needed as most plugins for specific file types
+usually don't have too much code in the `plugin` directory. You might want to
 examine the output of `vim --startuptime` before applying the option.
 
 Configurations for plugins are loaded with the plugin so you can use all the commands the plugin provides in your config.
@@ -234,11 +229,11 @@ Configurations for plugins are loaded with the plugin so you can use all the com
 ### Post-update hooks
 
 There are some plugins that require extra steps after installation or update.
-In that case, use `do` option to describe the task to be performed.
+In that case, use the `do` option to describe the task to be performed.
 
 ```vim
 Plug 'Shougo/vimproc.vim', { 'do': 'make' }
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py' }
+Plug 'ycm-core/YouCompleteMe', { 'do': './install.py' }
 ```
 
 If the value starts with `:`, it will be recognized as a Vim command.
@@ -261,7 +256,7 @@ function! BuildYCM(info)
   endif
 endfunction
 
-Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }
+Plug 'ycm-core/YouCompleteMe', { 'do': function('BuildYCM') }
 ```
 
 Both forms of post-update hook are executed inside the directory of the plugin
@@ -269,7 +264,7 @@ and only run when the repository has changed, but you can force it to run
 unconditionally with the bang-versions of the commands: `PlugInstall!` and
 `PlugUpdate!`.
 
-Make sure to escape BARs and double-quotes when you write `do` option inline
+Make sure to escape BARs and double-quotes when you write the `do` option inline
 as they are mistakenly recognized as command separator or the start of the
 trailing comment.
 
@@ -295,7 +290,7 @@ The installer takes the following steps when installing/updating a plugin:
     1. Update submodules
     2. Execute post-update hooks
 
-The commands with `!` suffix ensure that all steps are run unconditionally.
+The commands with the `!` suffix ensure that all steps are run unconditionally.
 
 ### Articles
 
@@ -304,7 +299,11 @@ The commands with `!` suffix ensure that all steps are run unconditionally.
 - ~~[Thoughts on Vim plugin dependency](http://junegunn.kr/2013/09/thoughts-on-vim-plugin-dependency)~~
     - *Support for Plugfile has been removed since 0.5.0*
 
+### Collaborators
+
+- [Jan Edmund Lazo](https://github.com/janlazo) - Windows support
+- [Jeremy Pallats](https://github.com/starcraftman) - Python installer
+
 ### License
 
 MIT
-
